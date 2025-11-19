@@ -33,13 +33,12 @@ procedure TGenericController<T>.DoAppend(Req: THorseRequest;
 begin
   var LService := TBackendDelphiCadastro(T.Create);
   try
-    if LService.GetById(Req.Params['id'].ToInt64).IsEmpty then
-      raise EHorseException.New.Status(THTTPStatus.NotFound).Error(NOT_FOUND);
-    if LService.Update(Req.Body<TJSONObject>) then
-      Res.Status(THTTPStatus.NoContent);
+    if LService.Append(Req.Body<TJSONObject>) then
+      Res.Status(THTTPStatus.Created).Send<TJSONObject>(LService.qryCadastro.ToJSONObject());
   finally
     LService.Free;
   end;
+
 end;
 
 procedure TGenericController<T>.DoDelete(Req: THorseRequest;
@@ -88,11 +87,14 @@ procedure TGenericController<T>.DoUpdate(Req: THorseRequest;
 begin
   var LService := TBackendDelphiCadastro(T.Create);
   try
-    if LService.Append(Req.Body<TJSONObject>) then
-      Res.Status(THTTPStatus.Created).Send<TJSONObject>(LService.qryCadastro.ToJSONObject());
+    if LService.GetById(Req.Params['id'].ToInt64).IsEmpty then
+      raise EHorseException.New.Status(THTTPStatus.NotFound).Error(NOT_FOUND);
+    if LService.Update(Req.Body<TJSONObject>) then
+      Res.Status(THTTPStatus.NoContent);
   finally
     LService.Free;
   end;
+
 end;
 
 class function TGenericController<T>.New: IGenericController<T>;
